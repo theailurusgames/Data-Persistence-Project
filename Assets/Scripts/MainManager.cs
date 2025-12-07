@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
@@ -11,6 +13,7 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text bestScoreBox;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -18,7 +21,11 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
+    private int bestScore;
+    private string bestScoreName;
+    private string playerName;
+    private string bestScoreText;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -36,6 +43,16 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+        
+        if (DataDB.Instance != null)
+        {
+            bestScore = DataDB.Instance.bestScoreStored;
+            bestScoreName = DataDB.Instance.bestScoreNameStored;
+            playerName = DataDB.Instance.playerName;
+            //bestScoreText = DataDB.Instance.nameBoxText;
+            BestScoreSet(bestScore, bestScoreName);
+        }
+        
     }
 
     private void Update()
@@ -57,9 +74,15 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+    }
+
+    void BestScoreSet(int bestScore, string bestScoreName)
+    {
+        bestScoreBox.text = "Best Score: " + bestScoreName + ":" + bestScore;
     }
 
     void AddPoint(int point)
@@ -70,6 +93,16 @@ public class MainManager : MonoBehaviour
 
     public void GameOver()
     {
+        if (m_Points > bestScore)
+        {
+            bestScore = m_Points;
+            bestScoreName = playerName;
+            BestScoreSet(bestScore, bestScoreName);
+            DataDB.Instance.bestScoreStored = bestScore;
+            DataDB.Instance.bestScoreNameStored = bestScoreName;
+            DataDB.Instance.StoreData();
+        }
+
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
